@@ -1,120 +1,84 @@
-#include <stdio.h>
-#include <stdlib.h> /* Necessária para a função atoi(), que converte texto para número. */
-#include <ctype.h>  /* necessária para a função toupper(), que converte letras para maiúsculas. */
+#include <stdio.h>  
+#include <stdlib.h> // Para a função atoi (converter texto para inteiro)
+#include <ctype.h>  // Para a função toupper (converter para maiúscula)
 
 int main() {
-
     printf("**** BATALHA NAVAL ****\n\n");
-    
-    // --- DECLARAÇÃO DE VARIÁVEIS PRINCIPAIS ---
-    
-    // Array de caracteres para ser usado como legenda das linhas (A-J).
+
     char linha_letras[10] = {'A','B','C','D','E','F','G','H','I','J'};
-    
-    // O tabuleiro do jogo em si. É uma matriz 10x10 de inteiros.
-    // 0 = Água
-    // 1 = Navio
+    /* Estados do Tabuleiro:
+     * 0 = Água Intacta, 1 = Navio Intacto
+     * 2 = Tiro na Água (Erro), 3 = Navio Atingido (Acerto)
+    */
     int tabuleiro[10][10];
-
-    // Variáveis de controle para os loops (iteradores).
     int x, y, i;
-    
-    /* 
-     * =======================================================================
-     *                          1. INICIALIZAÇÃO DO TABULEIRO
-     * =======================================================================
-     */
-    // Este loop duplo percorre cada casa do tabuleiro.
-    for (y = 0; y < 10; y++) {        // Loop pelas linhas (y)
-        for (x = 0; x < 10; x++) {    // Loop pelas colunas (x)
-            // Define o valor de cada casa como 0, representando "água".
 
+    // ========================= 1. INICIALIZAÇÃO DO TABULEIRO =========================
+    // Preenche todo o tabuleiro com 0 (água) para começar.
+    for (y = 0; y < 10; y++) {
+        for (x = 0; x < 10; x++) {
             tabuleiro[x][y] = 0;
         }
     }
-    
-    /* 
-     * =======================================================================
-     *                  2. FASE DE POSICIONAMENTO DOS NAVIOS
-     * =======================================================================
-     */
 
-    /* 
-     * --- POSICIONA 2 NAVIOS EM LINHA (Horizontal/Vertical) ---
-     * Cada navio terá 3 casas de comprimento.
-     */
+    // ======================= 2. FASE DE POSICIONAMENTO DOS NAVIOS =======================
+
+    // --- PARTE A: 2 Navios em Linha (Horizontal/Vertical) ---
     printf("FASE 1: Posicione 2 Cruzadores (3 casas em linha).\n");
-    // Loop principal para posicionar os 2 navios desta fase.
     for (i = 0; i < 2; i++) {
-        // Variáveis temporárias para esta iteração do loop.
-        char coordenada[4]; // Armazena a entrada do usuário (ex: "A1", "C10").
-        int dir_linha;      // Armazena a direção escolhida (1-4).
-        int x_s, y_s, x_m, y_m, x_e, y_e; // Coordenadas para o início(s), meio(m) e fim(e) do navio.
-        int loop_valido = 0; // Variável de controle para o loop de validação (0=inválido, 1=válido).
+        char coordenada[4];
+        int dir_linha, x_s, y_s, x_m, y_m, x_e, y_e;
+        int loop_valido = 0; // Controla se a posição do navio é válida.
 
-        // Antes de cada posicionamento, exibe o estado atual do tabuleiro.
+        // Exibe o tabuleiro antes de pedir a coordenada.
         printf("\n   1 2 3 4 5 6 7 8 9 10\n");
         for (y = 0; y < 10; y++) {
             printf("%c  ", linha_letras[y]);
-            for (x = 0; x < 10; x++) { if (tabuleiro[x][y] == 0) printf("~ "); else printf("3 "); }
+            for (x = 0; x < 10; x++) { if (tabuleiro[x][y] == 0) printf("~ "); else printf("N "); }
             printf("\n");
         }
 
-        // Loop de validação: continua pedindo a coordenada até que uma válida seja inserida.
+        // Loop `do-while` para garantir que o usuário insira uma posição válida.
         do {
-            // Pede a coordenada inicial do navio.
             printf("\nDigite a coordenada INICIAL para o Cruzador #%d (ex: A1): ", i + 1);
             scanf("%3s", coordenada);
-            // Pede a direção do navio.
             printf("Escolha a direção (1: Direita, 2: Baixo, 3: Esquerda, 4: Cima): ");
             scanf("%d", &dir_linha);
 
-            // --- TRADUÇÃO E CÁLCULO DAS COORDENADAS ---
-            // Converte a letra da coordenada (ex: 'A') para o índice da linha (0).
+            // Converte a coordenada do usuário (ex: "A1") para índices do array (y=0, x=0).
             y_s = toupper(coordenada[0]) - 'A';
-            // Converte o número da coordenada (ex: "1") para o índice da coluna (0).
             x_s = atoi(&coordenada[1]) - 1;
 
-            // Calcula as posições do meio e do fim do navio com base na direção.
+            // Calcula as 3 partes do navio com base na direção escolhida.
             switch(dir_linha) {
-                case 1: x_m=x_s+1; y_m=y_s;   x_e=x_s+2; y_e=y_s;   break; // Direita: y fica constante, x aumenta
-                case 2: x_m=x_s;   y_m=y_s+1; x_e=x_s;   y_e=y_s+2; break; // Baixo:   x fica constante, y aumenta
-                case 3: x_m=x_s-1; y_m=y_s;   x_e=x_s-2; y_e=y_s;   break; // Esquerda:y fica constante, x diminui
-                case 4: x_m=x_s;   y_m=y_s-1; x_e=x_s;   y_e=y_s-2; break; // Cima:    x fica constante, y diminui
-                default: x_s = -1; break; // Se digitar uma direção inválida, dá erro de validação.
+                case 1: x_m=x_s+1; y_m=y_s;   x_e=x_s+2; y_e=y_s;   break; // Direita
+                case 2: x_m=x_s;   y_m=y_s+1; x_e=x_s;   y_e=y_s+2; break; // Baixo
+                case 3: x_m=x_s-1; y_m=y_s;   x_e=x_s-2; y_e=y_s;   break; // Esquerda
+                case 4: x_m=x_s;   y_m=y_s-1; x_e=x_s;   y_e=y_s-2; break; // Cima
+                default: x_s = -1; break; // Força um erro de validação se a direção for inválida.
             }
 
-            // --- VALIDAÇÃO DA POSIÇÃO ---
-
+            // Valida se o navio cabe no tabuleiro e não sobrepõe outro.
             if (x_s<0||x_s>9||y_s<0||y_s>9||x_m<0||x_m>9||y_m<0||y_m>9||x_e<0||x_e>9||y_e<0||y_e>9) {
                 printf("Posição inválida! O navio sai do tabuleiro.\n");
-                loop_valido = 0; // Mantém o loop rodando.
-
-            // O navio sobrepõe outro navio já existente? aqui com o else if irá comparar e validar.
-            } else if (tabuleiro[x_s][y_s]==1 || tabuleiro[x_m][y_m]==1 || tabuleiro[x_e][y_e]==1) {
+                loop_valido = 0;
+            } else if (tabuleiro[x_s][y_s] != 0 || tabuleiro[x_m][y_m] != 0 || tabuleiro[x_e][y_e] != 0) {
                 printf("Posição inválida! O navio sobrepõe outro.\n");
-                loop_valido = 0; // Mantém o loop rodando.
-
-            // Se passou em todas as validações:
+                loop_valido = 0;
             } else {
-
-                // Posiciona as 3 partes do navio no tabuleiro.
+                // Se a posição for válida, coloca o navio no tabuleiro.
                 tabuleiro[x_s][y_s] = 1; tabuleiro[x_m][y_m] = 1; tabuleiro[x_e][y_e] = 1;
-                loop_valido = 1; // Sinaliza que a posição é válida e quebra o loop `do-while`.
+                loop_valido = 1; // Termina o loop de validação.
             }
-        } while (loop_valido == 0); // O loop continua enquanto `loop_valido` for 0.
+        } while (loop_valido == 0);
     }
 
-    /* 
-     * --- AGORA É HORA DE POSICIONAR 2 NAVIOS NA DIAGONAL (3 casas) --- */
-
+    // --- PARTE B: 2 Navios na Diagonal ---
     printf("\nFASE 2: Posicione 2 Submarinos (3 casas na diagonal).\n");
-    // Loop principal para os 2 navios diagonais.
     for (i = 0; i < 2; i++) {
         char coordenada[4];
         int dir_diag, x_s, y_s, x_m, y_m, x_e, y_e;
-        int loop_valido = 0; // igual o anterior, mantém o loop rodando.
-
+        int loop_valido = 0;
 
         printf("\n   1 2 3 4 5 6 7 8 9 10\n");
         for (y = 0; y < 10; y++) {
@@ -131,21 +95,19 @@ int main() {
 
             y_s = toupper(coordenada[0]) - 'A';
             x_s = atoi(&coordenada[1]) - 1;
-            
-            // Calcula as posições do navio na diagonal.
+
             switch(dir_diag) {
-                case 1: x_m=x_s+1; y_m=y_s+1; x_e=x_s+2; y_e=y_s+2; break; // Baixo-Direita: x e y aumentam
-                case 2: x_m=x_s-1; y_m=y_s+1; x_e=x_s-2; y_e=y_s+2; break; // Baixo-Esquerda: x diminui, y aumenta
-                case 3: x_m=x_s+1; y_m=y_s-1; x_e=x_s+2; y_e=y_s-2; break; // Cima-Direita: x aumenta, y diminui
-                case 4: x_m=x_s-1; y_m=y_s-1; x_e=x_s-2; y_e=y_s-2; break; // Cima-Esquerda: x e y diminuem
-                default: x_s = -1; break; // Força um erro de validação.
+                case 1: x_m=x_s+1; y_m=y_s+1; x_e=x_s+2; y_e=y_s+2; break; // Baixo-Direita
+                case 2: x_m=x_s-1; y_m=y_s+1; x_e=x_s-2; y_e=y_s+2; break; // Baixo-Esquerda
+                case 3: x_m=x_s+1; y_m=y_s-1; x_e=x_s+2; y_e=y_s-2; break; // Cima-Direita
+                case 4: x_m=x_s-1; y_m=y_s-1; x_e=x_s-2; y_e=y_s-2; break; // Cima-Esquerda
+                default: x_s = -1; break;
             }
 
-            // Validação igual ao dos navios em linha, só que cruzado.
             if (x_s<0||x_s>9||y_s<0||y_s>9||x_m<0||x_m>9||y_m<0||y_m>9||x_e<0||x_e>9||y_e<0||y_e>9) {
                 printf("Posição inválida! O navio sai do tabuleiro.\n");
                 loop_valido = 0;
-            } else if (tabuleiro[x_s][y_s]==1 || tabuleiro[x_m][y_m]==1 || tabuleiro[x_e][y_e]==1) {
+            } else if (tabuleiro[x_s][y_s] != 0 || tabuleiro[x_m][y_m] != 0 || tabuleiro[x_e][y_e] != 0) {
                 printf("Posição inválida! O navio sobrepõe outro.\n");
                 loop_valido = 0;
             } else {
@@ -155,28 +117,71 @@ int main() {
         } while (loop_valido == 0);
     }
 
-    /* 
-     * =======================================================================
-     *                          3. EXIBIÇÃO DO TABULEIRO FINAL
-     * =======================================================================
-     */
-    printf("\n*** SEU TABULEIRO FINAL ESTÁ PRONTO PARA A BATALHA! ***\n");
+    // ============================= 3. FASE DE BATALHA =============================
+    printf("\n*** POSICIONAMENTO CONCLUÍDO! INICIANDO FASE DE BATALHA! ***\n");
 
-    printf("   1 2 3 4 5 6 7 8 9 10\n");
-    // Loop para imprimir cada linha do tabuleiro.
-    for (y = 0; y < 10; y++) {
-        // Imprime a legenda da linha (A, B, C...) a cada troca da linha.
-        printf("%c  ", linha_letras[y]);
-        // Loop para imprimir cada casa da linha atual.
-        for (x = 0; x < 10; x++) {
-            // Se o valor for 0, imprime água (~). Se não, imprime navio.
-            if (tabuleiro[x][y] == 0) printf("~ ");
-            else printf("3 ");
+    // Matrizes 5x5 que definem o padrão de cada habilidade.
+    int padrao_cruz[5][5]     = { {0,0,1,0,0}, {0,0,1,0,0}, {1,1,1,1,1}, {0,0,1,0,0}, {0,0,1,0,0} };
+    int padrao_cone[5][5]     = { {0,0,1,0,0}, {0,1,1,1,0}, {1,1,1,1,1}, {0,0,0,0,0}, {0,0,0,0,0} };
+    int padrao_octaedro[5][5] = { {0,0,1,0,0}, {0,1,1,1,0}, {1,1,1,1,1}, {0,1,1,1,0}, {0,0,1,0,0} };
+
+    // Loop para 3 turnos de ataque.
+    for (int turno = 1; turno <= 3; turno++) {
+        int habilidade, x_centro, y_centro;
+        char coordenada[4];
+
+        printf("\n--- TURNO DE ATAQUE #%d ---\n", turno);
+        printf("   1 2 3 4 5 6 7 8 9 10   (Legenda: N=Navio, ~=Agua, *=Erro, X=Acerto)\n");
+        for (y = 0; y < 10; y++) {
+            printf("%c  ", linha_letras[y]);
+            for (x = 0; x < 10; x++) {
+                switch(tabuleiro[x][y]) {
+                    case 0: printf("~ "); break; // Água Intacta
+                    case 1: printf("N "); break; // Navio Intacto
+                    case 2: printf("* "); break; // Tiro na Água
+                    case 3: printf("X "); break; // Navio Atingido
+                }
+            }
+            printf("\n");
         }
 
-        printf("\n");
+        printf("\nEscolha sua habilidade de ataque:\n");
+        printf("1. Cruz | 2. Cone | 3. Octaedro\n");
+        scanf("%d", &habilidade);
+        printf("Digite a coordenada CENTRAL do ataque (ex: D5): ");
+        scanf("%3s", coordenada);
+
+        y_centro = toupper(coordenada[0]) - 'A';
+        x_centro = atoi(&coordenada[1]) - 1;
+
+        // Ponteiro que aponta para o padrão de ataque escolhido.
+        int (*p_ataque)[5] = NULL;
+        switch(habilidade) {
+            case 1: p_ataque = padrao_cruz; break;
+            case 2: p_ataque = padrao_cone; break;
+            case 3: p_ataque = padrao_octaedro; break;
+            default: printf("Habilidade inválida! Turno perdido.\n"); continue; // Pula para o próximo turno.
+        }
+
+        printf("Lançando ataque...\n");
+        // Itera sobre a matriz de ataque 5x5.
+        for (int j = 0; j < 5; j++) {
+            for (int k = 0; k < 5; k++) {
+                // Se a célula do padrão for 1, aplica o ataque.
+                if (p_ataque[j][k] == 1) {
+                    // Calcula a coordenada real no tabuleiro, centralizando o padrão.
+                    int x_alvo = x_centro + (k - 2);
+                    int y_alvo = y_centro + (j - 2);
+
+                    // Verifica se o alvo está dentro dos limites do tabuleiro.
+                    if (x_alvo >= 0 && x_alvo < 10 && y_alvo >= 0 && y_alvo < 10) {
+                        if (tabuleiro[x_alvo][y_alvo] == 0) { tabuleiro[x_alvo][y_alvo] = 2; } // Água -> Erro
+                        else if (tabuleiro[x_alvo][y_alvo] == 1) { tabuleiro[x_alvo][y_alvo] = 3; } // Navio -> Acerto
+                    }
+                }
+            }
+        }
     }
-    
-    // fimmmm
+    printf("\n*** FIM DA FASE DE BATALHA! ***\n");
     return 0;
 }
